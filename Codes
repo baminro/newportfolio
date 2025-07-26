@@ -109,6 +109,7 @@ df
 df=df.reset_index()
 df=df[['<DTYYYYMMDD>','<CLOSE>','<OPEN>','<HIGH>','<LOW>','<VOL>','<COL11>','<TICKER>','SMAclose5',	'SMAclose30',	'EMAclose5',	'EMAclose30',	'UpperBandclose',	'LowerBandclose',	'FIclose',	'EMV_MAclose',	'RSIclose']]
 df.columns = ['Date','<CLOSE>','<OPEN>','<HIGH>','<LOW>','<VOL>','<COL11>','<TICKER>','SMAclose5',	'SMAclose30',	'EMAclose5',	'EMAclose30',	'UpperBandclose',	'LowerBandclose',	'FIclose',	'EMV_MAclose', 'RSIclose']
+df=df[df['Date']<='2025-05-17']
 df
 
 
@@ -389,7 +390,7 @@ class Agent:
 
         self.portfolio_size = portfolio_size
         self.allow_short = allow_short
-        self.input_shape = (63,95, )
+        self.input_shape = (50,95, )
         self.action_size = 3 # sit, buy, sell
 
         self.memory4replay = []
@@ -559,7 +560,7 @@ agent = Agent(N_ASSETS)
 env = CryptoEnvironment()
 
 
-window_size = 63
+window_size = 50
 episode_count =10
 batch_size = 32
 rebalance_period =5 #every 90 days weight change
@@ -581,7 +582,7 @@ for e in range(episode_count):
     diffc=[]
     print("Episode " + str(e) + "/" + str(episode_count), 'epsilon', agent.epsilon)
 
-    s = env.get_state(np.random.randint(window_size+1, data_length-504-window_size-1), window_size)
+    s = env.get_state(np.random.randint(window_size+1, data_length-505-window_size-1), window_size)
     total_profit = 0
     W0=(N_ASSETS-77)*[ 1./(N_ASSETS-77)]
     W0 = [element * 0 for element in W0]
@@ -589,7 +590,7 @@ for e in range(episode_count):
     W0eq = [element * 0 for element in W0eq]
     initial_capital=float(1000)
     initial_capitaleq=float(1000)
-    for t in range(window_size, data_length-504, rebalance_period):
+    for t in range(window_size, data_length-505, rebalance_period):
         date1 = t-rebalance_period
         #correlation from 90-180 days
         s_ = env.get_state(t, window_size)
@@ -659,7 +660,7 @@ W0eq=(N_ASSETS-77)*[ 1./(N_ASSETS-77)]
 W0eq = [element * 0 for element in W0eq]
 initial_capital=float(1000)
 initial_capitaleq=float(1000)
-for t in range(len(env.data)-504, len(env.data), rebalance_period):
+for t in range(len(env.data)-505, len(env.data), rebalance_period):
 
     date1 = t-rebalance_period
     s_ = env.get_state(t, window_size)
@@ -682,14 +683,16 @@ for t in range(len(env.data)-504, len(env.data), rebalance_period):
     actions_rl.append(action[0])
 
 
-dataind = read_csv('/content/drive/MyDrive/index.csv',index_col=0)
-dataind1=dataind[len(env.data)-510:len(env.data)]
-dataind1=dataind1.reset_index()
+dataind = read_csv('/content/drive/MyDrive/indexnew.csv',index_col=0,header=2)
+#dataind[len(env.data)-756:len(env.data)]
+dataind= dataind.rename(columns={'Unnamed: 1': 'IDXS'})
+dataind=dataind[len(env.data)-750:len(env.data)]
+dataind=dataind.reset_index()
 
 fgh=[]
 fgh1=[]
-for c in range(rebalance_period,len(dataind1.index)+1,rebalance_period):
-         fgh.append(dataind1['IDXS'][c-rebalance_period:c])
+for c in range(rebalance_period,len(dataind.index)+1,rebalance_period):
+         fgh.append(dataind['IDXS'][c-rebalance_period:c])
 
          #fgh.append(dataind1['IDXS'][rebalance_period:len(dataind1.index)])
 
@@ -853,6 +856,11 @@ rl_vispitwo= read_csv('/content/drive/MyDrive/result_rl_vispitwo.csv',index_col=
 rl_vispitwo.columns = ['result_rl_vispitwo']
 rl_visptwo= read_csv('/content/drive/MyDrive/result_rl_visptwo.csv',index_col=0)
 rl_visptwo.columns = ['result_rl_visptwo']
+
+rl_vispithree= read_csv('/content/drive/MyDrive/result_rl_vispithree.csv',index_col=0)
+rl_vispithree.columns = ['result_rl_vispithree']
+rl_vispthree= read_csv('/content/drive/MyDrive/result_rl_vispthree.csv',index_col=0)
+rl_vispthree.columns = ['result_rl_vispthree']
 
 vnp=pd.concat([rl_vispitwo.cumsum(),rl_visptwo.cumsum()],axis=1)
 plt.figure(figsize = (10, 5))
